@@ -8,28 +8,27 @@ import { useAppStore } from '@/store/useAppStore';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const login = useAppStore((s) => s.login);
+  const { login, isLoading, error, clearError } = useAppStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    login({
-      id: '1',
-      name: 'Rajesh Kumar',
-      email,
-      phone: '+91 98765 43210',
-      aadhaarVerified: 'verified',
-      points: 720,
-      accountStatus: 'active',
-      createdAt: new Date().toISOString(),
-    });
-    setLoading(false);
-    navigate('/dashboard');
+    setLocalError('');
+    
+    if (!email || !password) {
+      setLocalError('Please fill in all fields');
+      return;
+    }
+
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setLocalError(err.message || 'Login failed');
+    }
   };
 
   return (
@@ -54,6 +53,12 @@ export default function LoginPage() {
         className="flex-1 px-5 -mt-6"
       >
         <form onSubmit={handleLogin} className="bg-card rounded-2xl p-6 space-y-5 border border-border/50" style={{ boxShadow: 'var(--shadow-xl)' }}>
+          {(error || localError) && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+              {error || localError}
+            </div>
+          )}
+          
           <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>
             <div className="relative">
@@ -62,8 +67,13 @@ export default function LoginPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setLocalError('');
+                  clearError();
+                }}
                 className="pl-10 h-11"
+                disabled={isLoading}
                 required
               />
             </div>
@@ -76,18 +86,27 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setLocalError('');
+                  clearError();
+                }}
                 className="pl-10 pr-10 h-11"
+                disabled={isLoading}
                 required
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading}>
-            {loading ? (
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
+            {isLoading ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 Signing in...
@@ -100,7 +119,11 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-muted-foreground mt-6 pb-8">
           Don't have an account?{' '}
-          <button onClick={() => navigate('/signup')} className="text-primary font-semibold hover:underline">
+          <button 
+            onClick={() => navigate('/signup')} 
+            disabled={isLoading}
+            className="text-primary font-semibold hover:underline disabled:opacity-50"
+          >
             Sign Up
           </button>
         </p>

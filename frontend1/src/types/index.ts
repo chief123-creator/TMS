@@ -13,11 +13,17 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  aadhaarVerified: VerificationStatus;
-  points: number;
-  accountStatus: AccountStatus;
+  aadhaar_status?: VerificationStatus;
+  aadhaarVerified?: VerificationStatus;
+  account_status?: AccountStatus;
+  accountStatus?: AccountStatus;
+  trust_points?: number;
+  points?: number;
+  wallet_balance?: number;
+  role?: string;
+  created_at?: string;
+  createdAt?: string;
   avatar?: string;
-  createdAt: string;
 }
 
 export interface VideoMetadata {

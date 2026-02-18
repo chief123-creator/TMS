@@ -3,6 +3,7 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional
 from app.models.user import AadhaarStatus, AccountStatus
+from pydantic import Field
 
 class UserBase(BaseModel):
     name: str

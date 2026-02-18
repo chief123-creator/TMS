@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAppStore } from "@/store/useAppStore";
+import { useEffect } from "react";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
@@ -26,12 +27,33 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AppInitializer() {
+  const setUser = useAppStore((s) => s.setUser);
+
+  useEffect(() => {
+    // Initialize user from localStorage on app load
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        setUser(user);
+      } catch (err) {
+        console.error('Failed to parse stored user:', err);
+        localStorage.removeItem('user');
+      }
+    }
+  }, [setUser]);
+
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AppInitializer />
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
